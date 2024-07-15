@@ -135,3 +135,4 @@ C:\Users\jessy\Documents\IDGS903\Repositorios\MediFinder_Backend\MediFinder_Back
 C:\Users\jessy\Documents\IDGS903\Repositorios\MediFinder_Backend\MediFinder_Backend\obj\Debug\net8.0\MediFinder_Backend.pdb
 C:\Users\jessy\Documents\IDGS903\Repositorios\MediFinder_Backend\MediFinder_Backend\obj\Debug\net8.0\MediFinder_Backend.genruntimeconfig.cache
 C:\Users\jessy\Documents\IDGS903\Repositorios\MediFinder_Backend\MediFinder_Backend\obj\Debug\net8.0\ref\MediFinder_Backend.dll
+C:\Users\jessy\Documents\IDGS903\Repositorios\MediFinder_Backend\MediFinder_Backend\obj\Debug\net8.0\MediFinder_Backend.sourcelink.json
