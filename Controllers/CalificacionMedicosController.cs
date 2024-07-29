@@ -1,0 +1,197 @@
+﻿using MediFinder_Backend.Models;
+using Microsoft.AspNetCore.Http;
+using static MediFinder_Backend.ModelosEspeciales.RegistrarCalificacionMedicos;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace MediFinder_Backend.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CalificacionMedicosController : ControllerBase
+    {
+        //Variable de ccontexto de BD
+        private readonly MedifinderContext _baseDatos;
+
+        //Contructor del controlador
+        public CalificacionMedicosController(MedifinderContext baseDatos)
+        {
+            this._baseDatos = baseDatos;
+        }
+
+        //Registrar calificación del médico -----------------------------------------------------
+        [HttpPost]
+        [Route("RegistrarCalificacionMedico")]
+        public async Task<ActionResult> RegistrarCalificacionMedico([FromBody] CalificacionMedicoDTO calificacionMedicoDTO)
+        {
+            //Valida que el modelo recibido este correcto
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                //Validar que el Id de la cita recibido si existe en la BD
+                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == calificacionMedicoDTO.IdCita);
+                if (existeCita == null)
+                {
+                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                }
+
+                if (calificacionMedicoDTO.Puntuacion < 0 || calificacionMedicoDTO.Puntuacion > 5)
+                {
+                    return BadRequest($"La puntación ingresada no es válida, debe de estar entre 1 y 5.");
+                }
+
+                //Formateamos el modelo de la calificacion
+                var calificacionNueva = new CalificacionMedico
+                {
+                    IdCita = calificacionMedicoDTO.IdCita,
+                    Puntuacion = calificacionMedicoDTO.Puntuacion,
+                    Fecha = DateOnly.FromDateTime(DateTime.Now),
+                    Comentarios = calificacionMedicoDTO.Comentarios
+                };
+
+                // Guardar la calificacion en la base de datos
+                _baseDatos.CalificacionMedico.Add(calificacionNueva);
+                await _baseDatos.SaveChangesAsync();
+
+                return Ok(new { message = "Calificación registrada con éxito", calificacionNueva.Id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        //Lista de calificacion del médico -----------------------------------------------------
+        [HttpGet]
+        [Route("ListadoCalificacionesMedico")]
+        public async Task<IActionResult> ObtenerListaCalificaciones(int idMedico)
+        {
+            try
+            {
+                //Validar que el Id del médico recibido si existe en la BD
+                var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == idMedico);
+                if (existeMedico == null)
+                {
+                    return BadRequest($"El médico ingresado no existe.");
+                }
+
+                //Ejecutamos la consulta
+                var listaCalificacionesMedico = await (
+                    from cm in _baseDatos.CalificacionMedico
+                    join c in _baseDatos.Cita on cm.IdCita equals c.Id
+                    join m in _baseDatos.Medicos on c.IdMedico equals m.Id
+                    join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
+                    where c.IdMedico == idMedico
+                    select new
+                    {
+                        cm.Id,
+                        cm.IdCita,
+                        cm.Puntuacion,
+                        cm.Fecha,
+                        IdPaciente = c.IdPaciente,
+                        NombrePaciente = p.Nombre,
+                        ApellidoPaciente = p.Apellido,
+                        c.IdMedico,
+                        NombreMedico = m.Nombre,
+                        ApellidoMedico = m.Apellido
+                    }
+                ).ToListAsync();
+
+                //retornamos la lista de resultados
+                return Ok(listaCalificacionesMedico);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        //Detalle de calificacion del médico -----------------------------------------------------
+        [HttpGet]
+        [Route("DetallesCalificacionMedico")]
+        public async Task<IActionResult> ObtenerDetallesCalificacionMedico(int idCalificacionMedico)
+        {
+            try
+            {
+                //Validar que el Id de la calificacion recibido si existe en la BD
+                var existeCalificacion = await _baseDatos.CalificacionMedico.FirstOrDefaultAsync(e => e.Id == idCalificacionMedico);
+                if (existeCalificacion == null)
+                {
+                    return BadRequest($"El la calificación solicitada no existe.");
+                }
+
+                //Ejecutamos la consulta
+                var calificacionMedico = await (
+                    from cm in _baseDatos.CalificacionMedico
+                    join c in _baseDatos.Cita on cm.IdCita equals c.Id
+                    join m in _baseDatos.Medicos on c.IdMedico equals m.Id
+                    join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
+                    where c.Id == idCalificacionMedico
+                    select new
+                    {
+                        cm.Id,
+                        cm.IdCita,
+                        cm.Puntuacion,
+                        cm.Fecha,
+                        IdPaciente = c.IdPaciente,
+                        NombrePaciente = p.Nombre,
+                        ApellidoPaciente = p.Apellido,
+                        c.IdMedico,
+                        NombreMedico = m.Nombre,
+                        ApellidoMedico = m.Apellido
+                    }
+                ).ToListAsync();
+
+                //retornamos el resultadof
+                return Ok(calificacionMedico);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        //Promedio calificacion del médico -----------------------------------------------------
+        [HttpGet]
+        [Route("PromedioCalificacionMedico")]
+        public async Task<IActionResult> ObtenerPromedioCalificacionMedico(int idMedico)
+        {
+            try
+            {
+                //Validar que el Id del médico recibido si existe en la BD
+                var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == idMedico);
+                if (existeMedico == null)
+                {
+                    return BadRequest($"El médico ingresado no existe.");
+                }
+
+                var promedio = await (
+                    from cm in _baseDatos.CalificacionMedico
+                    join c in _baseDatos.Cita on cm.IdCita equals c.Id
+                    join m in _baseDatos.Medicos on c.IdMedico equals m.Id
+                    where c.IdMedico == idMedico
+                    group new { cm, c, m } by new { c.IdMedico, m.Nombre, m.Apellido } into grouped
+                    select new
+                    {
+                        IdMedico = grouped.Key.IdMedico,
+                        Nombre = grouped.Key.Nombre,
+                        Apellido = grouped.Key.Apellido,
+                        PromedioPuntuacion = Math.Round((float)grouped.Sum(g => g.cm.Puntuacion) / grouped.Count(), 2)
+                    }).ToListAsync();
+
+                return Ok(promedio);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+    }
+}
