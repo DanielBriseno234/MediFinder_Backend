@@ -67,7 +67,7 @@ namespace MediFinder_Backend.Controllers
 
         //Lista de calificacion del médico -----------------------------------------------------
         [HttpGet]
-        [Route("ListadoCalificacionesMedico")]
+        [Route("ListadoCalificacionesMedico/{idMedico}")]
         public async Task<IActionResult> ObtenerListaCalificaciones(int idMedico)
         {
             try
@@ -101,6 +101,11 @@ namespace MediFinder_Backend.Controllers
                     }
                 ).ToListAsync();
 
+                if (listaCalificacionesMedico.Count == 0)
+                {
+                    return BadRequest(new { message = "No se encontraron registros para el médico ingresado" });
+                }
+
                 //retornamos la lista de resultados
                 return Ok(listaCalificacionesMedico);
 
@@ -113,13 +118,13 @@ namespace MediFinder_Backend.Controllers
 
         //Detalle de calificacion del médico -----------------------------------------------------
         [HttpGet]
-        [Route("DetallesCalificacionMedico")]
-        public async Task<IActionResult> ObtenerDetallesCalificacionMedico(int idCalificacionMedico)
+        [Route("DetallesCalificacionMedico/{id}")]
+        public async Task<IActionResult> ObtenerDetallesCalificacionMedico(int id)
         {
             try
             {
                 //Validar que el Id de la calificacion recibido si existe en la BD
-                var existeCalificacion = await _baseDatos.CalificacionMedico.FirstOrDefaultAsync(e => e.Id == idCalificacionMedico);
+                var existeCalificacion = await _baseDatos.CalificacionMedico.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCalificacion == null)
                 {
                     return BadRequest($"El la calificación solicitada no existe.");
@@ -131,7 +136,7 @@ namespace MediFinder_Backend.Controllers
                     join c in _baseDatos.Cita on cm.IdCita equals c.Id
                     join m in _baseDatos.Medicos on c.IdMedico equals m.Id
                     join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
-                    where c.Id == idCalificacionMedico
+                    where cm.Id == id
                     select new
                     {
                         cm.Id,
@@ -159,7 +164,7 @@ namespace MediFinder_Backend.Controllers
 
         //Promedio calificacion del médico -----------------------------------------------------
         [HttpGet]
-        [Route("PromedioCalificacionMedico")]
+        [Route("PromedioCalificacionMedico/{idMedico}")]
         public async Task<IActionResult> ObtenerPromedioCalificacionMedico(int idMedico)
         {
             try

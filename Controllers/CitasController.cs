@@ -86,8 +86,8 @@ namespace MediFinder_Backend.Controllers
 
         //Modificar Cita --------------------------------------------------------
         [HttpPut]
-        [Route("ModificarCita/{idCita}")]
-        public async Task<IActionResult> ModificarCita(int idCita, [FromBody] CitaDTO citaDTO)
+        [Route("ModificarCita/{id}")]
+        public async Task<IActionResult> ModificarCita(int id, [FromBody] CitaDTO citaDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +97,7 @@ namespace MediFinder_Backend.Controllers
             try
             {
                 //Validar que el Id de la cita recibido si existe en la BD
-                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == idCita);
+                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
                     return BadRequest($"No existe ningún registro de la cita recibida.");
@@ -156,7 +156,7 @@ namespace MediFinder_Backend.Controllers
 
         //Obtener listado de citas por paciente --------------------------------------------------------
         [HttpGet]
-        [Route("ObtenerCitasPacientes")]
+        [Route("ObtenerCitasPacientes/{idPaciente}")]
         public async Task<IActionResult> ObtenerCitasPacientes(int idPaciente)
         {
             try
@@ -202,7 +202,7 @@ namespace MediFinder_Backend.Controllers
 
         //Obtener listado de citas por medico --------------------------------------------------------
         [HttpGet]
-        [Route("ObtenerCitasMedicos")]
+        [Route("ObtenerCitasMedicos/{idMedico}")]
         public async Task<IActionResult> ObtenerCitasMedico(int idMedico)
         {
             try
@@ -216,7 +216,7 @@ namespace MediFinder_Backend.Controllers
 
                 //Consultamos las listas y formateamos estructura de respuesta
                 var listaCitasPacientes = await _baseDatos.Cita
-                .Where(c => c.IdPaciente == idMedico)
+                .Where(c => c.IdMedico == idMedico)
                 .Include(p => p.IdPacienteNavigation)
                 .Include(m => m.IdMedicoNavigation)
                 .Select(c => new CitaInfoDto
@@ -248,13 +248,13 @@ namespace MediFinder_Backend.Controllers
 
         //Confirmar cita por medico --------------------------------------------------------
         [HttpPut]
-        [Route("ConfirmarCitaMedico/{idCita}")]
-        public async Task<IActionResult> ConfirmarCitaMedico(int idCita)
+        [Route("ConfirmarCitaMedico/{id}")]
+        public async Task<IActionResult> ConfirmarCitaMedico(int id)
         {
             try
             {
                 //Validar que el Id de la cita recibido si existe en la BD
-                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == idCita);
+                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
                     return BadRequest($"No existe ningún registro de la cita recibida.");
@@ -290,13 +290,13 @@ namespace MediFinder_Backend.Controllers
 
         //Confirmar cita por paciente --------------------------------------------------------
         [HttpPut]
-        [Route("ConfirmarCitaPaciente/{idCita}")]
-        public async Task<IActionResult> ConfirmarCitaPaciente(int idCita)
+        [Route("ConfirmarCitaPaciente/{id}")]
+        public async Task<IActionResult> ConfirmarCitaPaciente(int id)
         {
             try
             {
                 //Validar que el Id de la cita recibido si existe en la BD
-                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == idCita);
+                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
                     return BadRequest($"No existe ningún registro de la cita recibida.");
@@ -332,13 +332,13 @@ namespace MediFinder_Backend.Controllers
 
         //Cancelar cita por medico --------------------------------------------------------
         [HttpPut]
-        [Route("CancelarCitaMedico/{idCita}")]
-        public async Task<IActionResult> CancelarCitaMedico(int idCita, [FromBody] CancelarCitaDTO cancelarCitaDTO)
+        [Route("CancelarCitaMedico/{id}")]
+        public async Task<IActionResult> CancelarCitaMedico(int id, [FromBody] CancelarCitaDTO cancelarCitaDTO)
         {
             try
             {
                 //Validar que el Id de la cita recibido si existe en la BD
-                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == idCita);
+                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
                     return BadRequest($"No existe ningún registro de la cita recibida.");
@@ -376,13 +376,13 @@ namespace MediFinder_Backend.Controllers
 
         //Confirmar cita por paciente --------------------------------------------------------
         [HttpPut]
-        [Route("CancelarCitaPaciente/{idCita}")]
-        public async Task<IActionResult> CancelarCitaPaciente(int idCita, [FromBody] CancelarCitaDTO cancelarCitaDTO)
+        [Route("CancelarCitaPaciente/{id}")]
+        public async Task<IActionResult> CancelarCitaPaciente(int id, [FromBody] CancelarCitaDTO cancelarCitaDTO)
         {
             try
             {
                 //Validar que el Id de la cita recibido si existe en la BD
-                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == idCita);
+                var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
                     return BadRequest($"No existe ningún registro de la cita recibida.");
