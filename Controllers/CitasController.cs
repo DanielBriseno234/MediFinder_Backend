@@ -36,14 +36,14 @@ namespace MediFinder_Backend.Controllers
                 var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == cita.IdMedico);
                 if (existeMedico == null)
                 {
-                    return BadRequest($"El médico ingresado no existe. La cita no ha sido agendada.");
+                    return NotFound($"El médico ingresado no existe. La cita no ha sido agendada.");
                 }
 
                 //Validar que el id del paciente recibido exista en la BD
                 var existePaciente = await _baseDatos.Paciente.FirstOrDefaultAsync(e => e.Id == cita.IdPaciente);
                 if (existePaciente == null)
                 {
-                    return BadRequest($"El paciente ingresado no existe. La cita no ha sido agendada.");
+                    return NotFound($"El paciente ingresado no existe. La cita no ha sido agendada.");
                 }
 
                 // Validar que las fechas recibidas no estén volteadas
@@ -100,21 +100,21 @@ namespace MediFinder_Backend.Controllers
                 var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
-                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                    return NotFound($"No existe ningún registro de la cita recibida.");
                 }
 
                 //Validar que el Id del médico recibido si existe en la BD
                 var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == citaDTO.IdMedico);
                 if (existeMedico == null)
                 {
-                    return BadRequest($"El médico ingresado no existe. La cita no ha sido modificada.");
+                    return NotFound($"El médico ingresado no existe. La cita no ha sido modificada.");
                 }
 
                 //Validar que el id del paciente recibido exista en la BD
                 var existePaciente = await _baseDatos.Paciente.FirstOrDefaultAsync(e => e.Id == citaDTO.IdPaciente);
                 if (existePaciente == null)
                 {
-                    return BadRequest($"El paciente ingresado no existe. La cita no ha sido modificada.");
+                    return NotFound($"El paciente ingresado no existe. La cita no ha sido modificada.");
                 }
 
                 // Validar que las fechas recibidas no estén volteadas
@@ -165,7 +165,7 @@ namespace MediFinder_Backend.Controllers
                 var existePaciente = await _baseDatos.Paciente.FirstOrDefaultAsync(e => e.Id == idPaciente);
                 if (existePaciente == null)
                 {
-                    return BadRequest($"El paciente ingresado no existe. La cita no ha sido modificada.");
+                    return NotFound($"El paciente ingresado no existe. La cita no ha sido modificada.");
                 }
 
                 //Consultamos las listas y formateamos estructura de respuesta
@@ -211,7 +211,7 @@ namespace MediFinder_Backend.Controllers
                 var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == idMedico);
                 if (existeMedico == null)
                 {
-                    return BadRequest($"El médico ingresado no existe.");
+                    return NotFound($"El médico ingresado no existe.");
                 }
 
                 //Consultamos las listas y formateamos estructura de respuesta
@@ -257,7 +257,7 @@ namespace MediFinder_Backend.Controllers
                 var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
-                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                    return NotFound($"No existe ningún registro de la cita recibida.");
                 }
 
                 //Validar que la cita no este cancelada
@@ -299,7 +299,7 @@ namespace MediFinder_Backend.Controllers
                 var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
-                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                    return NotFound($"No existe ningún registro de la cita recibida.");
                 }
 
                 //Validar que la cita no este cancelada
@@ -341,7 +341,7 @@ namespace MediFinder_Backend.Controllers
                 var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
-                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                    return NotFound($"No existe ningún registro de la cita recibida.");
                 }
 
                 //Validar que la cita no este cancelada por paciente
@@ -385,7 +385,7 @@ namespace MediFinder_Backend.Controllers
                 var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCita == null)
                 {
-                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                    return NotFound($"No existe ningún registro de la cita recibida.");
                 }
 
                 //Validar que la cita no este cancelada por el médico

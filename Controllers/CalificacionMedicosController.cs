@@ -36,7 +36,7 @@ namespace MediFinder_Backend.Controllers
                 var existeCita = await _baseDatos.Cita.FirstOrDefaultAsync(e => e.Id == calificacionMedicoDTO.IdCita);
                 if (existeCita == null)
                 {
-                    return BadRequest($"No existe ningún registro de la cita recibida.");
+                    return NotFound($"No existe ningún registro de la cita recibida.");
                 }
 
                 if (calificacionMedicoDTO.Puntuacion < 0 || calificacionMedicoDTO.Puntuacion > 5)
@@ -76,7 +76,7 @@ namespace MediFinder_Backend.Controllers
                 var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == idMedico);
                 if (existeMedico == null)
                 {
-                    return BadRequest($"El médico ingresado no existe.");
+                    return NotFound($"El médico ingresado no existe.");
                 }
 
                 //Ejecutamos la consulta
@@ -103,7 +103,7 @@ namespace MediFinder_Backend.Controllers
 
                 if (listaCalificacionesMedico.Count == 0)
                 {
-                    return BadRequest(new { message = "No se encontraron registros para el médico ingresado" });
+                    return NotFound(new { message = "No se encontraron registros para el médico ingresado" });
                 }
 
                 //retornamos la lista de resultados
@@ -127,7 +127,7 @@ namespace MediFinder_Backend.Controllers
                 var existeCalificacion = await _baseDatos.CalificacionMedico.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCalificacion == null)
                 {
-                    return BadRequest($"El la calificación solicitada no existe.");
+                    return NotFound($"El la calificación solicitada no existe.");
                 }
 
                 //Ejecutamos la consulta
@@ -173,7 +173,7 @@ namespace MediFinder_Backend.Controllers
                 var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == idMedico);
                 if (existeMedico == null)
                 {
-                    return BadRequest($"El médico ingresado no existe.");
+                    return NotFound($"El médico ingresado no existe.");
                 }
 
                 var promedio = await (
