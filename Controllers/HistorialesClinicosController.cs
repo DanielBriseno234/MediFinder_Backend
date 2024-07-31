@@ -69,7 +69,7 @@ namespace MediFinder_Backend.Controllers
             }
         }
 
-        //Modificar Cita --------------------------------------------------------
+        //Modificar Historial --------------------------------------------------------
         [HttpPut]
         [Route("ModificarHistorialClinico/{id}")]
         public async Task<IActionResult> ModificarHistorial(int id, [FromBody] HistorialClinicoDTO historialClinicoDTO)
@@ -124,12 +124,28 @@ namespace MediFinder_Backend.Controllers
         }
 
         //Obtener listado de historial clinico por paciente --------------------------------------------------------
-        [HttpGet]
+        [HttpPost]
         [Route("ObtenerHistorialClinicoPorPaciente/{idPaciente}")]
-        public async Task<IActionResult> ObtenerHistorialPaciente(int idPaciente)
+        public async Task<IActionResult> ObtenerHistorialPaciente(int idPaciente, [FromBody] ChecarHistorialDTO checarHistorialDTO)
         {
             try
             {
+                //Validar que el Id del médico recibido si existe en la BD
+                var existeMedico = await _baseDatos.Medicos.FirstOrDefaultAsync(e => e.Id == checarHistorialDTO.IdMedico);
+                if (existeMedico == null)
+                {
+                    return NotFound($"El médico ingresado no existe.");
+                }
+
+                //Verificar que el medico tenga asignado el paciente
+                var medicoAsignado = await _baseDatos.PacientesAsignado
+                    .FirstOrDefaultAsync(pa => pa.IdPaciente == idPaciente && pa.IdMedico == checarHistorialDTO.IdMedico && pa.Estatus != "0");
+
+                if (medicoAsignado == null)
+                {
+                    return Unauthorized($"No tiene el permiso para visualizar el historial del paciente.");
+                }
+
                 //Validar que el Id del paciente recibido si existe en la BD
                 var existePaciente = await _baseDatos.Paciente.FirstOrDefaultAsync(e => e.Id == idPaciente);
                 if (existePaciente == null)
@@ -138,7 +154,7 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Hacemos la consulta y formateamos la respuesta
-                var listaHistorial = await (
+                var listaAgrupada = await (
                     from hc in _baseDatos.HistorialClinico
                     join c in _baseDatos.Cita on hc.IdCita equals c.Id
                     join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
@@ -156,7 +172,7 @@ namespace MediFinder_Backend.Controllers
                         Padecimientos = hc.Padecimientos,
                         Intervenciones = hc.Intervenciones,
                         Fecha = hc.Fecha,
-                        PesoPaciente =  hc.PesoPaciente,
+                        PesoPaciente = hc.PesoPaciente,
                         TallaPaciente = hc.TallaPaciente,
                         GlucosaPaciente = hc.GlucosaPaciente,
                         OxigenacionPaciente = hc.OxigenacionPaciente,
@@ -168,15 +184,44 @@ namespace MediFinder_Backend.Controllers
                         IdMedico = c.IdMedico,
                         NombreMedico = m.Nombre,
                         ApellidoMedico = m.Apellido
+                    })
+                    .GroupBy(r => new { r.IdPaciente, r.NombrePaciente, r.ApellidoPaciente })
+                    .Select(g => new
+                    {
+                        g.Key.IdPaciente,
+                        g.Key.NombrePaciente,
+                        g.Key.ApellidoPaciente,
+                        HistorialClinico = g.Select(hc => new
+                        {
+                            hc.Id,
+                            hc.IdCita,
+                            hc.FechaInicioCita,
+                            hc.FechaFinCita,
+                            hc.EstatusCita,
+                            hc.Observaciones,
+                            hc.Diagnostico,
+                            hc.Padecimientos,
+                            hc.Intervenciones,
+                            hc.Fecha,
+                            hc.PesoPaciente,
+                            hc.TallaPaciente,
+                            hc.GlucosaPaciente,
+                            hc.OxigenacionPaciente,
+                            hc.PresionPaciente,
+                            hc.TemperaturaCorporalPaciente,
+                            hc.IdMedico,
+                            hc.NombreMedico,
+                            hc.ApellidoMedico
+                        }).ToList()
                     }).ToListAsync();
 
                 //Validamos si tiene hostorial sino retornamos un mensaje
-                if (listaHistorial.Count == 0)
+                if (listaAgrupada.Count == 0)
                 {
                     return Ok(new { message = "El paciente no cuenta con historial clínico" });
                 }
 
-                return Ok(listaHistorial);
+                return Ok(listaAgrupada);
 
             }
             catch (Exception ex)
@@ -200,7 +245,7 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Hacemos la consulta y formateamos la respuesta
-                var listaHistorial = await (
+                var listaAgrupada = await (
                     from hc in _baseDatos.HistorialClinico
                     join c in _baseDatos.Cita on hc.IdCita equals c.Id
                     join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
@@ -230,15 +275,45 @@ namespace MediFinder_Backend.Controllers
                         IdMedico = c.IdMedico,
                         NombreMedico = m.Nombre,
                         ApellidoMedico = m.Apellido
+                    })
+                    .GroupBy(r => new { r.IdMedico, r.NombreMedico, r.ApellidoMedico })
+                    .Select(g => new
+                    {
+                        g.Key.IdMedico,
+                        g.Key.NombreMedico,
+                        g.Key.ApellidoMedico,
+                        HistorialClinico = g.Select(hc => new
+                        {
+                            hc.Id,
+                            hc.IdCita,
+                            hc.FechaInicioCita,
+                            hc.FechaFinCita,
+                            hc.EstatusCita,
+                            hc.Observaciones,
+                            hc.Diagnostico,
+                            hc.Padecimientos,
+                            hc.Intervenciones,
+                            hc.Fecha,
+                            hc.PesoPaciente,
+                            hc.TallaPaciente,
+                            hc.GlucosaPaciente,
+                            hc.OxigenacionPaciente,
+                            hc.PresionPaciente,
+                            hc.TemperaturaCorporalPaciente,
+                            hc.IdPaciente,
+                            hc.NombrePaciente,
+                            hc.ApellidoPaciente
+                        }).ToList()
                     }).ToListAsync();
 
-                //Validamos si tiene hostorial sino retornamos un mensaje
-                if (listaHistorial.Count == 0)
+                // Validamos si tiene historial sino retornamos un mensaje
+                if (listaAgrupada.Count == 0)
                 {
-                    return Ok(new { message = "El medico no cuenta con registros de historial clínico" });
+                    return Ok(new { message = "El médico no cuenta con registros de historial clínico" });
                 }
 
-                return Ok(listaHistorial);
+                return Ok(listaAgrupada);
+
 
             }
             catch (Exception ex)

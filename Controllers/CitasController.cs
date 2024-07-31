@@ -165,34 +165,43 @@ namespace MediFinder_Backend.Controllers
                 var existePaciente = await _baseDatos.Paciente.FirstOrDefaultAsync(e => e.Id == idPaciente);
                 if (existePaciente == null)
                 {
-                    return NotFound($"El paciente ingresado no existe. La cita no ha sido modificada.");
+                    return NotFound($"El paciente ingresado no existe.");
                 }
 
                 //Consultamos las listas y formateamos estructura de respuesta
-                var listaCitasPaciente = await _baseDatos.Cita
-                .Where(a => a.IdPaciente == idPaciente)
-                .Include(p => p.IdPacienteNavigation)
-                .Include(m => m.IdMedicoNavigation)
-                .Select(c => new CitaInfoDto
-                {
-                    Id = c.Id,
-                    IdPaciente = c.IdPaciente,
-                    IdMedico = c.IdMedico,
-                    FechaInicio = c.FechaInicio,
-                    FechaFin = c.FechaFin,
-                    Descripcion = c.Descripcion,
-                    Estatus = c.Estatus,
-                    FechaCancelacion = c.FechaCancelacion,
-                    MotivoCancelacion = c.MotivoCancelacion,
-                    NombrePaciente = c.IdPacienteNavigation.Nombre,
-                    ApellidoPaciente = c.IdPacienteNavigation.Apellido,
-                    NombreMedico = c.IdMedicoNavigation.Nombre,
-                    ApellidoMedico = c.IdMedicoNavigation.Apellido
-                })
-                .ToListAsync();
+                var listaAgrupada = await _baseDatos.Cita
+                    .Where(c => c.IdPaciente == idPaciente)
+                    .Include(c => c.IdPacienteNavigation)
+                    .Include(c => c.IdMedicoNavigation)
+                    .GroupBy(c => new { c.IdPaciente, c.IdPacienteNavigation.Nombre, c.IdPacienteNavigation.Apellido })
+                    .Select(g => new
+                    {
+                        IdPaciente = g.Key.IdPaciente,
+                        NombrePaciente = g.Key.Nombre,
+                        ApellidoPaciente = g.Key.Apellido,
+                        Citas = g.Select(c => new
+                        {
+                            c.Id,
+                            c.IdMedico,
+                            c.FechaInicio,
+                            c.FechaFin,
+                            c.Descripcion,
+                            c.Estatus,
+                            c.FechaCancelacion,
+                            c.MotivoCancelacion,
+                            NombreMedico = c.IdMedicoNavigation.Nombre,
+                            ApellidoMedico = c.IdMedicoNavigation.Apellido
+                        }).ToList()
+                    }).ToListAsync();
 
-                //Retornamos resultados
-                return Ok(listaCitasPaciente);
+                // Validamos si tiene citas, sino retornamos un mensaje
+                if (listaAgrupada.Count == 0)
+                {
+                    return Ok(new { message = "El paciente no cuenta con registros de citas." });
+                }
+
+                return Ok(listaAgrupada);
+
             }
             catch (Exception ex)
             {
@@ -215,30 +224,39 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Consultamos las listas y formateamos estructura de respuesta
-                var listaCitasPacientes = await _baseDatos.Cita
-                .Where(c => c.IdMedico == idMedico)
-                .Include(p => p.IdPacienteNavigation)
-                .Include(m => m.IdMedicoNavigation)
-                .Select(c => new CitaInfoDto
-                {
-                    Id = c.Id,
-                    IdPaciente = c.IdPaciente,
-                    IdMedico = c.IdMedico,
-                    FechaInicio = c.FechaInicio,
-                    FechaFin = c.FechaFin,
-                    Descripcion = c.Descripcion,
-                    Estatus = c.Estatus,
-                    FechaCancelacion = c.FechaCancelacion,
-                    MotivoCancelacion = c.MotivoCancelacion,
-                    NombrePaciente = c.IdPacienteNavigation.Nombre,
-                    ApellidoPaciente = c.IdPacienteNavigation.Apellido,
-                    NombreMedico = c.IdMedicoNavigation.Nombre,
-                    ApellidoMedico = c.IdMedicoNavigation.Apellido
-                })
-                .ToListAsync();
+                var listaAgrupadaPorMedico = await _baseDatos.Cita
+                    .Where(c => c.IdMedico == idMedico)
+                    .Include(c => c.IdPacienteNavigation)
+                    .Include(c => c.IdMedicoNavigation)
+                    .GroupBy(c => new { c.IdMedico, c.IdMedicoNavigation.Nombre, c.IdMedicoNavigation.Apellido })
+                    .Select(g => new
+                    {
+                        IdMedico = g.Key.IdMedico,
+                        NombreMedico = g.Key.Nombre,
+                        ApellidoMedico = g.Key.Apellido,
+                        Citas = g.Select(c => new
+                        {
+                            c.Id,
+                            c.IdPaciente,
+                            c.FechaInicio,
+                            c.FechaFin,
+                            c.Descripcion,
+                            c.Estatus,
+                            c.FechaCancelacion,
+                            c.MotivoCancelacion,
+                            NombrePaciente = c.IdPacienteNavigation.Nombre,
+                            ApellidoPaciente = c.IdPacienteNavigation.Apellido
+                        }).ToList()
+                    }).ToListAsync();
 
-                //Retornamos resultados
-                return Ok(listaCitasPacientes);
+                // Validamos si tiene citas, sino retornamos un mensaje
+                if (listaAgrupadaPorMedico.Count == 0)
+                {
+                    return Ok(new { message = "El médico no cuenta con registros de citas." });
+                }
+
+                return Ok(listaAgrupadaPorMedico);
+
             }
             catch (Exception ex)
             {

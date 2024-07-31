@@ -80,34 +80,43 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Ejecutamos la consulta
-                var listaCalificacionesMedico = await (
+                var listaCalificacionesAgrupadas = await (
                     from cm in _baseDatos.CalificacionMedico
                     join c in _baseDatos.Cita on cm.IdCita equals c.Id
                     join m in _baseDatos.Medicos on c.IdMedico equals m.Id
                     join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
                     where c.IdMedico == idMedico
+                    group new { cm, c, p } by new
+                    {
+                        c.IdMedico,
+                        m.Nombre,
+                        m.Apellido
+                    } into g
                     select new
                     {
-                        cm.Id,
-                        cm.IdCita,
-                        cm.Puntuacion,
-                        cm.Fecha,
-                        IdPaciente = c.IdPaciente,
-                        NombrePaciente = p.Nombre,
-                        ApellidoPaciente = p.Apellido,
-                        c.IdMedico,
-                        NombreMedico = m.Nombre,
-                        ApellidoMedico = m.Apellido
-                    }
-                ).ToListAsync();
+                        IdMedico = g.Key.IdMedico,
+                        NombreMedico = g.Key.Nombre,
+                        ApellidoMedico = g.Key.Apellido,
+                        Calificaciones = g.Select(x => new
+                        {
+                            x.cm.Id,
+                            x.cm.IdCita,
+                            x.cm.Puntuacion,
+                            x.cm.Fecha,
+                            IdPaciente = x.c.IdPaciente,
+                            NombrePaciente = x.p.Nombre,
+                            ApellidoPaciente = x.p.Apellido
+                        }).ToList()
+                    }).ToListAsync();
 
-                if (listaCalificacionesMedico.Count == 0)
+                if (listaCalificacionesAgrupadas.Count == 0)
                 {
-                    return NotFound(new { message = "No se encontraron registros para el médico ingresado" });
+                    return NotFound(new { message = "No se encontraron calificaciones para el médico ingresado" });
                 }
 
-                //retornamos la lista de resultados
-                return Ok(listaCalificacionesMedico);
+                // Retornamos la lista de resultados
+                return Ok(listaCalificacionesAgrupadas);
+
 
             }
             catch (Exception ex)
@@ -176,6 +185,7 @@ namespace MediFinder_Backend.Controllers
                     return NotFound($"El médico ingresado no existe.");
                 }
 
+                //Sacamos el promedio con base en una consulta
                 var promedio = await (
                     from cm in _baseDatos.CalificacionMedico
                     join c in _baseDatos.Cita on cm.IdCita equals c.Id
@@ -189,6 +199,12 @@ namespace MediFinder_Backend.Controllers
                         Apellido = grouped.Key.Apellido,
                         PromedioPuntuacion = Math.Round((float)grouped.Sum(g => g.cm.Puntuacion) / grouped.Count(), 2)
                     }).ToListAsync();
+
+                //Se valida que si haya un promedio
+                if(promedio.Count == 0)
+                {
+                    return NotFound(new { message = "El médico no cuenta con calificaciones registradas." });
+                }
 
                 return Ok(promedio);
 

@@ -30,5 +30,10 @@
 
             public decimal? TemperaturaCorporalPaciente { get; set; }
         }
+
+        public class ChecarHistorialDTO
+        {
+            public int IdMedico { get; set; }
+        }
     }
 }
