@@ -76,7 +76,8 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 var pacienteDTO = new
-                {
+                {   
+                    id   = paciente.Id,
                     NombreCompleto = $"{paciente.Nombre} {paciente.Apellido}",
                     Email = paciente.Email,
                     Telefono = paciente.Telefono,

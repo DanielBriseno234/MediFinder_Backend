@@ -11,9 +11,9 @@ public partial class Horario
 
     public int? Dia { get; set; }
 
-    public DateTime? FechaHoraInicio { get; set; }
+    public TimeOnly? HoraInicio { get; set; }
 
-    public DateTime? FechaHoraFin { get; set; }
+    public TimeOnly? HoraFin { get; set; }
 
     public virtual Medico? IdMedicoNavigation { get; set; }
 }

@@ -29,6 +29,15 @@ namespace MediFinder_Backend.ModelosEspeciales
             public decimal Honorarios { get; set; }
         }
 
+        public class RegistrarHorasDTO
+        {
+            public int IdMedico { get; set; }  
+            public int DiaSemana { get; set; }
+            public string HoraInicio { get; set; }
+            public string HoraFin { get; set; }  
+        }
+
+
         public class LoginDTO
         {
             [Required(ErrorMessage = "El campo Email es requerido")]

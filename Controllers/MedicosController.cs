@@ -318,6 +318,7 @@ namespace MediFinder_Backend.Controllers
                 // Mapear la lista de médicos filtrados a un formato DTO para devolver
                 var listaMedicosDTO = medicosFiltrados.Select(m => new
                 {
+                    IdDoctor = m.Id,
                     NombreCompleto = $"{m.Nombre} {m.Apellido}",
                     Especialidades = m.EspecialidadMedicoIntermedia
                                         .Where(em => em.IdEspecialidadNavigation.Nombre.ToLower().Contains(nombreEspecialidad.ToLower()))
@@ -337,6 +338,132 @@ namespace MediFinder_Backend.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("ObtenerHorasDeTrabajo/{idMedico}/{dia}/{fecha}")]
+        public async Task<IActionResult> ObtenerHorasDeTrabajo(int idMedico, int dia, DateTime fecha)
+        {
+            try
+            {
+                // Validar que la fecha no sea inhábil para el médico
+                var fechaInhabil = await _baseDatos.DiaInhabil
+                .Where(d => d.IdMedico == idMedico && d.Fecha.HasValue && d.Fecha.Value.Date == fecha.Date)
+                .AnyAsync();
+
+                if (fechaInhabil)
+                {
+                    return BadRequest("El día solicitado es inhábil para el médico.");
+                }
+
+                // Verificar que el día esté dentro del rango válido
+                if (dia < 1 || dia > 7)
+                {
+                    return BadRequest("El día debe estar entre 1 (lunes) y 7 (domingo).");
+                }
+
+                // Obtener los horarios del médico para el día solicitado
+                var horarios = await _baseDatos.Horarios
+                    .Where(h => h.IdMedico == idMedico && h.Dia == dia)
+                    .ToListAsync();
+
+                if (horarios == null || !horarios.Any())
+                {
+                    return NotFound("No se encontraron horarios para el médico en el día especificado.");
+                }
+
+                // Determinar todas las horas trabajadas
+                var horasTrabajadas = new HashSet<string>();
+
+                foreach (var horario in horarios)
+                {
+                    var inicio = horario.HoraInicio;
+                    var fin = horario.HoraFin;
+
+                    if (inicio == null || fin == null)
+                        continue;
+
+                    var horaInicio = inicio.Value;
+                    var horaFin = fin.Value;
+
+                    // Generar las horas en el rango de inicio a fin
+                    for (var current = horaInicio; current <= horaFin; current = current.Add(TimeSpan.FromHours(1)))
+                    {
+                        horasTrabajadas.Add(current.ToString("HH:mm"));
+                    }
+                }
+
+                // Ordenar las horas y convertir a una lista
+                var horasOrdenadas = horasTrabajadas.OrderBy(h => h).ToList();
+
+                return Ok(horasOrdenadas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        [Route("RegistrarHorasTrabajo")]
+        public async Task<IActionResult> RegistrarHorasTrabajo([FromBody] RegistrarHorasDTO registrarHorasDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // Validar si el médico existe
+                var medicoExistente = await _baseDatos.Medicos.FindAsync(registrarHorasDTO.IdMedico);
+                if (medicoExistente == null)
+                {
+                    return NotFound("El médico especificado no existe.");
+                }
+
+                // Convertir cadenas a TimeOnly
+                if (!TryParseTimeOnly(registrarHorasDTO.HoraInicio, out var horaInicio) ||
+                    !TryParseTimeOnly(registrarHorasDTO.HoraFin, out var horaFin))
+                {
+                    return BadRequest("Formato de hora inválido.");
+                }
+
+                // Buscar un registro existente con el mismo IdMedico y Dia
+                var horarioExistente = await _baseDatos.Horarios
+                    .FirstOrDefaultAsync(h => h.IdMedico == registrarHorasDTO.IdMedico && h.Dia == registrarHorasDTO.DiaSemana);
+
+                if (horarioExistente != null)
+                {
+                    // Actualizar el registro existente
+                    horarioExistente.HoraInicio = horaInicio;
+                    horarioExistente.HoraFin = horaFin;
+
+                    _baseDatos.Horarios.Update(horarioExistente);
+                }
+                else
+                {
+                    // Registrar la nueva hora de trabajo
+                    var nuevoHorario = new Horario
+                    {
+                        IdMedico = registrarHorasDTO.IdMedico,
+                        Dia = registrarHorasDTO.DiaSemana,
+                        HoraInicio = horaInicio,
+                        HoraFin = horaFin
+                    };
+
+                    _baseDatos.Horarios.Add(nuevoHorario);
+                }
+
+                await _baseDatos.SaveChangesAsync();
+
+                return Ok(new { message = "Horas de trabajo registradas correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+
 
 
 
@@ -355,7 +482,12 @@ namespace MediFinder_Backend.Controllers
             return false; 
         }
 
-        
+        private bool TryParseTimeOnly(string timeString, out TimeOnly timeOnly)
+        {
+            timeOnly = default;
+            return TimeOnly.TryParse(timeString, out timeOnly);
+        }
+
 
 
 
