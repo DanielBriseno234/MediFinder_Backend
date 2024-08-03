@@ -338,6 +338,7 @@ namespace MediFinder_Backend.Controllers
             }
         }
 
+
         [HttpGet]
         [Route("ObtenerHorasDeTrabajo/{idMedico}/{dia}/{fecha}")]
         public async Task<IActionResult> ObtenerHorasDeTrabajo(int idMedico, int dia, DateTime fecha)
@@ -463,8 +464,78 @@ namespace MediFinder_Backend.Controllers
             }
         }
 
+        // Obtener detalles medico---------------------------------------------------------------------------------------------
+        [HttpGet]
+        [Route("DetallesMedico/{id}")]
+        public async Task<IActionResult> DetallesMedico(int id)
+        {
+            try
+            {
+                var resultado = from m in _baseDatos.Medicos
+                                join emi in _baseDatos.EspecialidadMedicoIntermedia on m.Id equals emi.IdMedico
+                                join e in _baseDatos.Especialidad on emi.IdEspecialidad equals e.Id
+                                where m.Id == 1
+                                group new { m, emi, e } by new
+                                {
+                                    m.Id,
+                                    m.Nombre,
+                                    m.Apellido,
+                                    m.Email,
+                                    m.Contrasena,
+                                    m.Telefono,
+                                    m.Calle,
+                                    m.Colonia,
+                                    m.Numero,
+                                    m.Ciudad,
+                                    m.Pais,
+                                    m.CodigoPostal,
+                                    m.Estatus,
+                                    m.FechaRegistro,
+                                    m.FechaValidacion,
+                                    m.FechaBaja
+                                } into grp
+                                select new
+                                {
+                                    Id = grp.Key.Id,
+                                    Nombre = grp.Key.Nombre,
+                                    Apellido = grp.Key.Apellido,
+                                    Email = grp.Key.Email,
+                                    Contrasena = grp.Key.Contrasena,
+                                    Telefono = grp.Key.Telefono,
+                                    Calle = grp.Key.Calle,
+                                    Colonia = grp.Key.Colonia,
+                                    Numero = grp.Key.Numero,
+                                    Ciudad = grp.Key.Ciudad,
+                                    Pais = grp.Key.Pais,
+                                    CodigoPostal = grp.Key.CodigoPostal,
+                                    Estatus = grp.Key.Estatus,
+                                    FechaRegistro = grp.Key.FechaRegistro,
+                                    FechaValidacion = grp.Key.FechaValidacion,
+                                    FechaBaja = grp.Key.FechaBaja,
+                                    Especialidades = grp.Select(x => new
+                                    {
+                                        IdEspecialidad = x.emi.IdEspecialidad,
+                                        NumCedula = x.emi.NumCedula,
+                                        NombreEspecialidad = x.e.Nombre
+                                    }).ToList()
+                                };
 
+                var listaResultados = await resultado.ToListAsync();
 
+                // Validamos si la lista contiene algo
+                if (listaResultados.Count == 0)
+                {
+                    return NotFound($"No se encontraron registros del médico.");
+                }
+
+                // Retornamos los resultados
+                return Ok(listaResultados);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
 
 
 
