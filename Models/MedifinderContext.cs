@@ -17,7 +17,7 @@ public partial class MedifinderContext : DbContext
 
     public virtual DbSet<Administrador> Administrador { get; set; }
 
-    public virtual DbSet<CalificacionMedico> CalificacionMedico { get; set; }
+    public virtual DbSet<CalificacionMedico> CalificacionMedicos { get; set; }
 
     public virtual DbSet<Citum> Cita { get; set; }
 
@@ -31,13 +31,13 @@ public partial class MedifinderContext : DbContext
 
     public virtual DbSet<Horario> Horarios { get; set; }
 
-    public virtual DbSet<Indicacione> Indicacione { get; set; }
+    public virtual DbSet<Indicacione> Indicaciones { get; set; }
 
     public virtual DbSet<Medico> Medicos { get; set; }
 
     public virtual DbSet<Paciente> Paciente { get; set; }
 
-    public virtual DbSet<PacientesAsignado> PacientesAsignado { get; set; }
+    public virtual DbSet<PacientesAsignado> PacientesAsignados { get; set; }
 
     public virtual DbSet<PagoSuscripcion> PagoSuscripcion { get; set; }
 
@@ -48,6 +48,7 @@ public partial class MedifinderContext : DbContext
     public virtual DbSet<Tratamiento> Tratamiento { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Administrador>(entity =>
@@ -209,12 +210,8 @@ public partial class MedifinderContext : DbContext
 
             entity.ToTable("Horario");
 
-            entity.Property(e => e.FechaHoraFin)
-                .HasColumnType("datetime")
-                .HasColumnName("Fecha_Hora_Fin");
-            entity.Property(e => e.FechaHoraInicio)
-                .HasColumnType("datetime")
-                .HasColumnName("Fecha_Hora_Inicio");
+            entity.Property(e => e.HoraFin).HasColumnName("Hora_Fin");
+            entity.Property(e => e.HoraInicio).HasColumnName("Hora_Inicio");
             entity.Property(e => e.IdMedico).HasColumnName("Id_Medico");
 
             entity.HasOne(d => d.IdMedicoNavigation).WithMany(p => p.Horarios)

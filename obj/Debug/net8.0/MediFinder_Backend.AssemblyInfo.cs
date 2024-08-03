@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MediFinder_Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ebe50424d1ee376c7597add850527c281269b0e3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ec2368db5bea09b5bdb25fc115a6f4b63350e574")]
 [assembly: System.Reflection.AssemblyProductAttribute("MediFinder_Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MediFinder_Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
