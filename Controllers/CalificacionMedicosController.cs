@@ -54,7 +54,7 @@ namespace MediFinder_Backend.Controllers
                 };
 
                 // Guardar la calificacion en la base de datos
-                _baseDatos.CalificacionMedico.Add(calificacionNueva);
+                _baseDatos.CalificacionMedicos.Add(calificacionNueva);
                 await _baseDatos.SaveChangesAsync();
 
                 return Ok(new { message = "Calificación registrada con éxito", calificacionNueva.Id });
@@ -81,7 +81,7 @@ namespace MediFinder_Backend.Controllers
 
                 //Ejecutamos la consulta
                 var listaCalificacionesAgrupadas = await (
-                    from cm in _baseDatos.CalificacionMedico
+                    from cm in _baseDatos.CalificacionMedicos
                     join c in _baseDatos.Cita on cm.IdCita equals c.Id
                     join m in _baseDatos.Medicos on c.IdMedico equals m.Id
                     join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
@@ -133,7 +133,7 @@ namespace MediFinder_Backend.Controllers
             try
             {
                 //Validar que el Id de la calificacion recibido si existe en la BD
-                var existeCalificacion = await _baseDatos.CalificacionMedico.FirstOrDefaultAsync(e => e.Id == id);
+                var existeCalificacion = await _baseDatos.CalificacionMedicos.FirstOrDefaultAsync(e => e.Id == id);
                 if (existeCalificacion == null)
                 {
                     return NotFound($"El la calificación solicitada no existe.");
@@ -141,7 +141,7 @@ namespace MediFinder_Backend.Controllers
 
                 //Ejecutamos la consulta
                 var calificacionMedico = await (
-                    from cm in _baseDatos.CalificacionMedico
+                    from cm in _baseDatos.CalificacionMedicos
                     join c in _baseDatos.Cita on cm.IdCita equals c.Id
                     join m in _baseDatos.Medicos on c.IdMedico equals m.Id
                     join p in _baseDatos.Paciente on c.IdPaciente equals p.Id
@@ -187,7 +187,7 @@ namespace MediFinder_Backend.Controllers
 
                 //Sacamos el promedio con base en una consulta
                 var promedio = await (
-                    from cm in _baseDatos.CalificacionMedico
+                    from cm in _baseDatos.CalificacionMedicos
                     join c in _baseDatos.Cita on cm.IdCita equals c.Id
                     join m in _baseDatos.Medicos on c.IdMedico equals m.Id
                     where c.IdMedico == idMedico

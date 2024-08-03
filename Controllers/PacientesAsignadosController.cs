@@ -46,7 +46,7 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Validar que no este esa asignación en la base de datos
-                var existeAsignacion = await _baseDatos.PacientesAsignado
+                var existeAsignacion = await _baseDatos.PacientesAsignados
                     .FirstOrDefaultAsync(pa => pa.IdMedico == asignarPacienteDTO.IdMedico 
                     && pa.IdPaciente == asignarPacienteDTO.IdPaciente && pa.Estatus == "1");
 
@@ -66,7 +66,7 @@ namespace MediFinder_Backend.Controllers
                 };
 
                 // Guardar la asignacion en la base de datos
-                _baseDatos.PacientesAsignado.Add(asignacionNueva);
+                _baseDatos.PacientesAsignados.Add(asignacionNueva);
                 await _baseDatos.SaveChangesAsync();
 
                 return Ok(new { message = "Asignación registrada exitosamente" });
@@ -92,7 +92,7 @@ namespace MediFinder_Backend.Controllers
             try
             {
                 //Validar que este esa asignación en la base de datos
-                var existeAsignacion = await _baseDatos.PacientesAsignado
+                var existeAsignacion = await _baseDatos.PacientesAsignados
                     .FirstOrDefaultAsync(pa => pa.Id == id);
 
                 //Validamos si existe
@@ -136,7 +136,7 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Ejecutamos la consulta para obtener los registros de la bd
-                var resultado = from pa in _baseDatos.PacientesAsignado
+                var resultado = from pa in _baseDatos.PacientesAsignados
                                 join m in _baseDatos.Medicos on pa.IdMedico equals m.Id
                                 join p in _baseDatos.Paciente on pa.IdPaciente equals p.Id
                                 where pa.IdMedico == idMedico && pa.Estatus == "1"
@@ -205,7 +205,7 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Consulta para sacar todos los medicos permitidos
-                var queryPacientesAsignados = from pa in _baseDatos.PacientesAsignado
+                var queryPacientesAsignados = from pa in _baseDatos.PacientesAsignados
                                 join m in _baseDatos.Medicos on pa.IdMedico equals m.Id
                                 join p in _baseDatos.Paciente on pa.IdPaciente equals p.Id
                                 where pa.IdPaciente == idPaciente && pa.Estatus == "1"
@@ -266,7 +266,7 @@ namespace MediFinder_Backend.Controllers
             {
                 //Consulta para sacar todos los medicos permitidos
                 var asignacion = await (
-                    from pa in _baseDatos.PacientesAsignado
+                    from pa in _baseDatos.PacientesAsignados
                     join m in _baseDatos.Medicos on pa.IdMedico equals m.Id
                     join p in _baseDatos.Paciente on pa.IdPaciente equals p.Id
                     where pa.Id == id

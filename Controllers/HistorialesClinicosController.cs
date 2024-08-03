@@ -138,7 +138,7 @@ namespace MediFinder_Backend.Controllers
                 }
 
                 //Verificar que el medico tenga asignado el paciente
-                var medicoAsignado = await _baseDatos.PacientesAsignado
+                var medicoAsignado = await _baseDatos.PacientesAsignados
                     .FirstOrDefaultAsync(pa => pa.IdPaciente == idPaciente && pa.IdMedico == checarHistorialDTO.IdMedico && pa.Estatus != "0");
 
                 if (medicoAsignado == null)
